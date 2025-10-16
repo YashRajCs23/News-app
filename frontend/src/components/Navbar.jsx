@@ -33,10 +33,10 @@ const Navbar = ({ setCategory }) => {
   }, []);
 
   return (
-    <nav className="font-['Orbitron'] bg-black text-slate-200 px-4 py-3 flex items-center justify-between shadow-md shadow-teal-500/30 rounded-2xl relative z-[1000]">
+    <nav className="font-['aileron'] bg-black text-slate-200 px-4 py-6 flex items-center justify-between shadow-md shadow-teal-500/30  relative z-[1000]">
       <div className="flex items-center justify-between w-full">
         {/* Logo */}
-        <h1 className="text-sm font-bold text-teal-500 tracking-[1.5px]">
+        <h1 className="text-md font-bold text-teal-500 tracking-[1.5px]">
           News Aggregator
         </h1>
 
@@ -57,7 +57,7 @@ const Navbar = ({ setCategory }) => {
 
             {/* User / Signup */}
             {isLoggedIn ? (
-              <Link to="/dashboard">
+              <Link to="/user/dashboard">
                 <button className="p-2 text-slate-200 hover:bg-teal-500/20 rounded transition">
                   <User size={20} />
                 </button>
@@ -104,7 +104,7 @@ const Navbar = ({ setCategory }) => {
           {/* Mobile User/Signup */}
           <div className="p-2 flex justify-center">
             {isLoggedIn ? (
-              <Link to="/dashboard">
+              <Link to="/user/dashboard">
                 <button className="p-2 text-slate-200 hover:bg-teal-500/20 rounded transition">
                   <User size={20} />
                 </button>

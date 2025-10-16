@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import authService from "../services/authService";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -8,24 +9,12 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-      }
-
-      const data = await response.json();
-      localStorage.setItem("user", JSON.stringify(data.user));
-      if (data.token) localStorage.setItem("token", data.token);
-
-      console.log("User logged in:", data.user);
-      navigate("/");
+      const user = await authService.login({ email, password });
+      if (user.role === "admin") navigate("/admin/dashboard");
+      else if (user.role === "editor") navigate("/editor/dashboard");
+      else navigate("/user/dashboard");
     } catch (error) {
       console.error("Login failed:", error.message);
       alert("Login failed: " + error.message);
