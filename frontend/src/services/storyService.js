@@ -1,4 +1,3 @@
-// src/services/storyService.js
 import http from "./http";
 
 export const createStory = async (payload) => {

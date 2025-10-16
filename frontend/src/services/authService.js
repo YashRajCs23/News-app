@@ -1,4 +1,3 @@
-// src/services/authService.js
 import http from "./http";
 import Cookies from "js-cookie";
 

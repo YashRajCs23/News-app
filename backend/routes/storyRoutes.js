@@ -5,8 +5,6 @@ const { auth, requireRole } = require("../middleware/authMiddleware");
 const { getAllStories, createStory, getStoryById, updateStory, deleteStory } = require("../controllers/storyController");
 
 const router = express.Router();
-
-// Multer local upload (can be swapped with Cloudinary)
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, path.join(process.cwd(), "backend", "uploads")),
   filename: (_req, file, cb) => cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_")),

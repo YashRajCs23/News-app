@@ -1,7 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
-// Simple mock that echoes category or id
 router.get("/", (req, res) => {
   const category = req.query.category || "general";
   res.json({ articles: [{ id: "1", title: `Top ${category} news`, category }] });

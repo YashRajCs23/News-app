@@ -1,4 +1,3 @@
-// src/services/newsService.js
 import http from "./http";
 
 const base = "/api/news";

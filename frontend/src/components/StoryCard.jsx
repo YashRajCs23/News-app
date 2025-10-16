@@ -1,4 +1,3 @@
-// src/components/StoryCard.jsx
 import React from "react";
 import { formatDate } from "../utils/formatDate";
 

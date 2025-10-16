@@ -1,4 +1,3 @@
-// src/components/StoryForm.jsx
 import React, { useState } from "react";
 
 const StoryForm = ({ onSubmit, initialData = {}, isEditing = false }) => {

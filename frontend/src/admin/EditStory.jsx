@@ -42,7 +42,6 @@ const EditStory = () => {
     fetchStory();
   }, [id]);
 
-  // ✅ Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -68,7 +67,6 @@ const EditStory = () => {
     }
   };
 
-  // ✅ Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setStory((prev) => ({ ...prev, [name]: value }));

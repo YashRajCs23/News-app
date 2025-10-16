@@ -1,4 +1,3 @@
-// Simple in-memory demo auth to align with frontend expectations
 const users = [];
 
 function signup(req, res) {
