@@ -1,25 +1,27 @@
 import { useState, useEffect } from "react";
+import http from "../services/http";
+import { addNews as addBookmark, removeNews as removeBookmark } from "../services/bookmarkService";
 
 const NewsFeed = ({ category }) => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const API_URL = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=343150d47242485d914a0b44b58a921e`;
+  const [bookmarkedArticles, setBookmarkedArticles] = useState(new Set());
 
   useEffect(() => {
     const fetchNews = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error("Failed to fetch news");
-        const data = await response.json();
-        if (data.articles.length === 0)
+        const response = await http.get("/api/news", {
+          params: { category }
+        });
+        const data = response.data;
+        if (!data.articles || data.articles.length === 0)
           throw new Error("No articles found for this category");
         setArticles(data.articles);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || "Failed to fetch news");
       } finally {
         setLoading(false);
       }
@@ -27,6 +29,35 @@ const NewsFeed = ({ category }) => {
 
     fetchNews();
   }, [category]);
+
+  const handleBookmark = async (article) => {
+    try {
+      // For news articles, we'll use the article URL as a unique identifier
+      const articleId = article.url || article.title;
+      
+      if (bookmarkedArticles.has(articleId)) {
+        // Remove bookmark
+        await removeBookmark(articleId);
+        setBookmarkedArticles(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(articleId);
+          return newSet;
+        });
+      } else {
+        // Add bookmark
+        await addBookmark({
+          url: articleId,
+          title: article.title,
+          sourceName: article?.source?.name,
+          imageUrl: article.urlToImage,
+        });
+        setBookmarkedArticles(prev => new Set([...prev, articleId]));
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+      alert("Failed to update bookmark. Please try again.");
+    }
+  };
 
   if (loading)
     return (
@@ -68,14 +99,27 @@ const NewsFeed = ({ category }) => {
               <span className="text-xs text-slate-400">
                 {article.source.name}
               </span>
-              <a
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-teal-500 font-bold text-sm hover:text-yellow-400 transition"
-              >
-                Read More →
-              </a>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleBookmark(article)}
+                  className={`text-sm px-2 py-1 rounded transition ${
+                    bookmarkedArticles.has(article.url || article.title)
+                      ? "bg-yellow-400 text-black"
+                      : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                  }`}
+                  title={bookmarkedArticles.has(article.url || article.title) ? "Remove bookmark" : "Add bookmark"}
+                >
+                  {bookmarkedArticles.has(article.url || article.title) ? "★" : "☆"}
+                </button>
+                <a
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-teal-500 font-bold text-sm hover:text-yellow-400 transition"
+                >
+                  Read More →
+                </a>
+              </div>
             </div>
           </div>
         ))}

@@ -1,31 +1,26 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import authService from "../services/authService";
+import Cookies from "js-cookie";
+import { useUserContext } from "../context/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const { login: setUserContext } = useUserContext ? useUserContext() : { login: null };
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-      }
-
-      const data = await response.json();
-      localStorage.setItem("user", JSON.stringify(data.user));
-      if (data.token) localStorage.setItem("token", data.token);
-
-      console.log("User logged in:", data.user);
-      navigate("/");
+      const user = await authService.login({ email, password });
+      const role = user.role || "user";
+      Cookies.set("role", role, { sameSite: "lax" });
+      Cookies.set(role, JSON.stringify(user), { sameSite: "lax" });
+      if (setUserContext) setUserContext(user);
+      if (role === "admin") navigate("/admin/dashboard");
+      else if (role === "editor") navigate("/editor/dashboard");
+      else navigate("/user/dashboard");
     } catch (error) {
       console.error("Login failed:", error.message);
       alert("Login failed: " + error.message);

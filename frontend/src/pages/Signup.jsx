@@ -1,31 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import authService from "../services/authService";
+import Cookies from "js-cookie";
+import { useUserContext } from "../context/UserContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // default role
   const navigate = useNavigate();
 
+  const { login: setUserContext } = useUserContext ? useUserContext() : { login: null };
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/users/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Signup failed");
-      }
-
-      const data = await response.json();
-      localStorage.setItem("user", JSON.stringify(data.user));
-      if (data.token) localStorage.setItem("token", data.token);
-
-      console.log("User signed up:", data.user);
-      navigate("/");
+      const user = await authService.signup({ email, password, role });
+      const userRole = user.role || "user";
+      Cookies.set("role", userRole, { sameSite: "lax" });
+      Cookies.set(userRole, JSON.stringify(user), { sameSite: "lax" });
+      if (setUserContext) setUserContext(user);
+      if (userRole === "admin") navigate("/admin/dashboard");
+      else if (userRole === "editor") navigate("/editor/dashboard");
+      else navigate("/user/dashboard");
     } catch (error) {
       console.error("Signup failed:", error.message);
       alert("Signup failed: " + error.message);
@@ -59,6 +55,16 @@ const Signup = () => {
           required
           className="w-full p-3 mb-4 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:outline-none"
         />
+
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full p-3 mb-4 rounded-md bg-slate-700 text-white focus:outline-none"
+        >
+          <option value="user">User</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
 
         <button
           type="submit"
