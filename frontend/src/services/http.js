@@ -21,8 +21,10 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (res) => res,
   (err) => {
-    const msg = err?.response?.data?.message || err.message || "Request failed";
-    return Promise.reject(new Error(msg));
+    const data = err?.response?.data || {};
+    const base = data.message || err.message || "Request failed";
+    const details = data.details ? `: ${data.details}` : "";
+    return Promise.reject(new Error(`${base}${details}`));
   }
 );
 

@@ -1,33 +1,43 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
+import { listMine, listMyNews } from "../../services/bookmarkService";
 
 const Dashboard = () => {
   const { user, logout } = useUserContext();
   const [bookmarks, setBookmarks] = useState([]);
+  const [newsBookmarks, setNewsBookmarks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      if (!user) {
-        const storedUser = JSON.parse(localStorage.getItem("user"));
-        if (!storedUser) {
+    const fetchBookmarks = async () => {
+      try {
+        if (!user) {
           navigate("/login");
           return;
         }
+        setLoading(true);
+        const [bookmarksData, newsBookmarksData] = await Promise.all([
+          listMine(),
+          listMyNews(),
+        ]);
+        setBookmarks(bookmarksData);
+        setNewsBookmarks(newsBookmarksData);
+      } catch (error) {
+        console.error("Error loading bookmarks:", error);
+        setBookmarks([]);
+        setNewsBookmarks([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const storedBookmarks =
-        JSON.parse(localStorage.getItem("bookmarks")) || [];
-      setBookmarks(storedBookmarks);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      navigate("/login");
-    }
+    fetchBookmarks();
   }, [navigate, user]);
 
   const handleLogout = () => {
-    logout(); // clears context + localStorage
+    logout(); 
     navigate("/login");
   };
 
@@ -62,34 +72,68 @@ const Dashboard = () => {
 
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-3">📚 Your Bookmarks</h3>
-
-          {bookmarks.length > 0 ? (
-            <ul className="space-y-2">
-              {bookmarks.map((bookmark, index) => (
-                <li
-                  key={index}
-                  className="bg-slate-700 hover:bg-slate-600 transition p-3 rounded-lg text-sm flex justify-between items-center"
-                >
-                  <span>{bookmark.title}</span>
-                  <button
-                    onClick={() => navigate(`/story/${bookmark.id}`)}
-                    className="text-blue-400 hover:text-blue-300 text-xs"
-                  >
-                    View →
-                  </button>
-                </li>
-              ))}
-            </ul>
+          {loading ? (
+            <p className="text-slate-400 text-sm">Loading bookmarks...</p>
           ) : (
-            <p className="text-slate-400 text-sm">
-              No bookmarks yet.{" "}
-              <span
-                className="text-blue-400 hover:text-blue-300 cursor-pointer"
-                onClick={() => navigate("/add-story")}
-              >
-                Add one now!
-              </span>
-            </p>
+            <>
+              {/* Story bookmarks */}
+              {bookmarks.length > 0 && (
+                <>
+                  <h4 className="text-blue-300 text-sm mb-2">Stories</h4>
+                  <ul className="space-y-2 mb-4">
+                    {bookmarks.map((bookmark, index) => (
+                      <li
+                        key={bookmark._id || index}
+                        className="bg-slate-700 hover:bg-slate-600 transition p-3 rounded-lg text-sm flex justify-between items-center"
+                      >
+                        <span>{bookmark.story?.title || bookmark.title}</span>
+                        <button
+                          onClick={() => navigate(`/story/${bookmark.story?._id || bookmark.id}`)}
+                          className="text-blue-400 hover:text-blue-300 text-xs"
+                        >
+                          View →
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {/* News bookmarks */}
+              {newsBookmarks.length > 0 && (
+                <>
+                  <h4 className="text-yellow-300 text-sm mb-2">News Articles</h4>
+                  <ul className="space-y-2">
+                    {newsBookmarks.map((bookmark, index) => (
+                      <li
+                        key={bookmark._id || index}
+                        className="bg-slate-700 hover:bg-slate-600 transition p-3 rounded-lg text-sm flex justify-between items-center"
+                      >
+                        <span>{bookmark.title || bookmark.url}</span>
+                        <a
+                          href={bookmark.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-yellow-400 hover:text-yellow-300 text-xs"
+                        >
+                          View →
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {bookmarks.length === 0 && newsBookmarks.length === 0 && (
+                <p className="text-slate-400 text-sm">
+                  No bookmarks yet.{' '}
+                  <span
+                    className="text-blue-400 hover:text-blue-300 cursor-pointer"
+                    onClick={() => navigate("/home")}
+                  >
+                    Browse news to bookmark!
+                  </span>
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

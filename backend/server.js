@@ -11,7 +11,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
-app.use("/uploads", express.static(path.join(process.cwd(), "backend", "uploads")));
+const uploadsDir = path.join(process.cwd(), "backend", "uploads");
+const fs = require("fs");
+try {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (e) {
+  console.error("Failed to create uploads directory:", e);
+}
+app.use("/uploads", express.static(uploadsDir));
 
 // Health check
 app.get("/api/health", (_req, res) => {

@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
+import Cookies from "js-cookie";
+import { useUserContext } from "../context/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const { login: setUserContext } = useUserContext ? useUserContext() : { login: null };
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
       const user = await authService.login({ email, password });
-      if (user.role === "admin") navigate("/admin/dashboard");
-      else if (user.role === "editor") navigate("/editor/dashboard");
+      const role = user.role || "user";
+      Cookies.set("role", role, { sameSite: "lax" });
+      Cookies.set(role, JSON.stringify(user), { sameSite: "lax" });
+      if (setUserContext) setUserContext(user);
+      if (role === "admin") navigate("/admin/dashboard");
+      else if (role === "editor") navigate("/editor/dashboard");
       else navigate("/user/dashboard");
     } catch (error) {
       console.error("Login failed:", error.message);

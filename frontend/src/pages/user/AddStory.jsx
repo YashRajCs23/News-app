@@ -12,7 +12,6 @@ const AddStory = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -30,7 +29,6 @@ const AddStory = () => {
       setLoading(true);
       setMessage("");
 
-      // You can connect this to your backend later
       const newStory = {
         title,
         content,
@@ -39,10 +37,8 @@ const AddStory = () => {
         date: new Date().toISOString(),
       };
 
-      // Save using storyService (or localStorage fallback)
       await storyService.addStory(newStory);
 
-      // Optionally store in localStorage
       const existing = JSON.parse(localStorage.getItem("stories")) || [];
       localStorage.setItem("stories", JSON.stringify([...existing, newStory]));
 
@@ -50,7 +46,6 @@ const AddStory = () => {
       setTitle("");
       setContent("");
 
-      // redirect after short delay
       setTimeout(() => navigate("/user/dashboard"), 1200);
     } catch (error) {
       console.error(error);

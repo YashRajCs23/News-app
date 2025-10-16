@@ -1,13 +1,51 @@
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
-router.get("/", (req, res) => {
-  const category = req.query.category || "general";
-  res.json({ articles: [{ id: "1", title: `Top ${category} news`, category }] });
+
+const NEWS_API_KEY = "343150d47242485d914a0b44b58a921e";
+const NEWS_API_BASE_URL = "https://newsapi.org/v2";
+
+router.get("/", async (req, res) => {
+  try {
+    const category = req.query.category || "general";
+    const response = await axios.get(`${NEWS_API_BASE_URL}/top-headlines`, {
+      params: {
+        country: "us",
+        category: category,
+        apiKey: NEWS_API_KEY
+      }
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching news:", error.message);
+    res.status(500).json({ 
+      error: "Failed to fetch news",
+      message: error.message 
+    });
+  }
 });
 
-router.get("/search", (req, res) => {
-  const q = req.query.q || "";
-  res.json({ articles: [{ id: "s1", title: `Result for ${q}` }] });
+router.get("/search", async (req, res) => {
+  try {
+    const q = req.query.q || "";
+    const response = await axios.get(`${NEWS_API_BASE_URL}/everything`, {
+      params: {
+        q: q,
+        apiKey: NEWS_API_KEY,
+        sortBy: "publishedAt",
+        pageSize: 20
+      }
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error searching news:", error.message);
+    res.status(500).json({ 
+      error: "Failed to search news",
+      message: error.message 
+    });
+  }
 });
 
 router.get("/:id", (req, res) => {

@@ -15,4 +15,19 @@ export const listMine = async () => {
   return data;
 };
 
+export const addNews = async ({ url, title, sourceName, imageUrl }) => {
+  const { data } = await http.post(`/api/bookmarks/news`, { url, title, sourceName, imageUrl });
+  return data;
+};
+
+export const removeNews = async (url) => {
+  const { data } = await http.delete(`/api/bookmarks/news`, { params: { url } });
+  return data;
+};
+
+export const listMyNews = async () => {
+  const { data } = await http.get(`/api/bookmarks/news/me/list`);
+  return data;
+};
+
 

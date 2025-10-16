@@ -1,24 +1,24 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NewsFeed from "../components/NewsFeed";
+import Cookies from "js-cookie";
 
 function Home({category}) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ✅ Load user from localStorage or create a default guest
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (!storedUser) {
-      const guestUser = {
-        name: "Guest User",
-        email: "guest@example.com",
-        role: "user",
-      };
-      localStorage.setItem("user", JSON.stringify(guestUser));
-      setUser(guestUser);
+    const role = Cookies.get("role") || "user";
+    const storedUser = Cookies.get(role);
+    if (!storedUser || storedUser === "undefined" || storedUser === "null") {
+      setUser({ name: "Guest User", email: "guest@example.com", role: "user" });
     } else {
-      setUser(storedUser);
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        setUser({ name: "Guest User", email: "guest@example.com", role: "user" });
+      }
     }
   }, []);
 

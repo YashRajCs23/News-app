@@ -7,7 +7,6 @@ export const formatDate = (dateString) => {
   const options = {
     year: 'numeric',
     month: 'short', // e.g., Jan, Feb, Mar
-    day: 'numeric',
   };
 
   return date.toLocaleDateString('en-US', options);

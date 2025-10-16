@@ -1,11 +1,22 @@
+import Cookies from "js-cookie";
+
 export const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
-  token: localStorage.getItem("token") || null,
+  user: (() => {
+    const role = Cookies.get("role");
+    const cookieName = role || "user";
+    const storedUser = Cookies.get(cookieName);
+    if (!storedUser || storedUser === "undefined" || storedUser === "null") return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      return null;
+    }
+  })(),
+  token: Cookies.get("token") || null,
   loading: false,
   error: null,
 };
 
-// Reducer function to manage authentication + role state
 export const userReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN_START":
@@ -15,18 +26,21 @@ export const userReducer = (state, action) => {
         error: null,
       };
 
-    case "LOGIN_SUCCESS":
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
-      if (action.payload.token) {
-        localStorage.setItem("token", action.payload.token);
-      }
+    case "LOGIN_SUCCESS": {
+      const { user, token } = action.payload;
+      const role = user.role || "user";
+      Cookies.set("role", role, { sameSite: "lax" });
+      Cookies.set(role, token, { sameSite: "lax" });
+      Cookies.set("token", token, { sameSite: "lax" });
+      Cookies.set(role, JSON.stringify(user), { sameSite: "lax" });
       return {
         ...state,
-        user: action.payload.user,
-        token: action.payload.token || null,
+        user,
+        token: token || null,
         loading: false,
         error: null,
       };
+    }
 
     case "LOGIN_FAILURE":
       return {
@@ -35,23 +49,31 @@ export const userReducer = (state, action) => {
         error: action.payload,
       };
 
-    case "LOGOUT":
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+    case "LOGOUT": {
+      const role = Cookies.get("role");
+      if (role) {
+        Cookies.remove(role);
+      }
+      Cookies.remove("token");
+      Cookies.remove("role");
       return {
         user: null,
         token: null,
         loading: false,
         error: null,
       };
+    }
 
-    case "UPDATE_ROLE":
+    case "UPDATE_ROLE": {
       const updatedUser = { ...state.user, role: action.payload };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      const role = action.payload;
+      Cookies.set("role", role, { sameSite: "lax" });
+      Cookies.set(role, JSON.stringify(updatedUser), { sameSite: "lax" });
       return {
         ...state,
         user: updatedUser,
       };
+    }
 
     default:
       return state;

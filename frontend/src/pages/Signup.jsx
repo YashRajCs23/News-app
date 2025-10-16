@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
+import Cookies from "js-cookie";
+import { useUserContext } from "../context/UserContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -8,13 +10,17 @@ const Signup = () => {
   const [role, setRole] = useState("user"); // default role
   const navigate = useNavigate();
 
+  const { login: setUserContext } = useUserContext ? useUserContext() : { login: null };
   const handleSignup = async (e) => {
     e.preventDefault();
-
     try {
       const user = await authService.signup({ email, password, role });
-      if (user.role === "admin") navigate("/admin/dashboard");
-      else if (user.role === "editor") navigate("/editor/dashboard");
+      const userRole = user.role || "user";
+      Cookies.set("role", userRole, { sameSite: "lax" });
+      Cookies.set(userRole, JSON.stringify(user), { sameSite: "lax" });
+      if (setUserContext) setUserContext(user);
+      if (userRole === "admin") navigate("/admin/dashboard");
+      else if (userRole === "editor") navigate("/editor/dashboard");
       else navigate("/user/dashboard");
     } catch (error) {
       console.error("Signup failed:", error.message);

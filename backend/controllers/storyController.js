@@ -27,15 +27,22 @@ async function createStory(req, res) {
   try {
     let categoryId = req.body.category;
     if (!categoryId) {
-      // ensure default category exists
       let general = await Category.findOne({ slug: "general" });
       if (!general) {
         general = await Category.create({ name: "General", slug: "general" });
       }
       categoryId = general._id;
     } else {
-      const exists = await Category.findById(categoryId);
+      const mongoose = require("mongoose");
+      let exists = null;
+      if (mongoose.Types.ObjectId.isValid(String(categoryId))) {
+        exists = await Category.findById(categoryId);
+      }
+      if (!exists) {
+        exists = await Category.findOne({ slug: String(categoryId).toLowerCase() });
+      }
       if (!exists) return res.status(400).json({ message: "Invalid category" });
+      categoryId = exists._id;
     }
     const story = await Story.create({
       title: req.body.title,
@@ -47,7 +54,8 @@ async function createStory(req, res) {
     });
     res.status(201).json(story);
   } catch (e) {
-    res.status(500).json({ message: "Server error" });
+    console.error("createStory error:", e);
+    res.status(500).json({ message: "Server error", details: e.message });
   }
 }
 
