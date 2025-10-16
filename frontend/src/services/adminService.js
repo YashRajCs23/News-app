@@ -24,5 +24,3 @@ export const deleteCategory = async (slug) => {
   const { data } = await http.delete(`/api/admin/categories/${slug}`);
   return data;
 };
-
-
