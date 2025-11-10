@@ -6,7 +6,10 @@ const StorySchema = new mongoose.Schema(
     content: { type: String, required: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
     imageUrl: { type: String, default: "" },
-    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  // admin/editor who reviewed (approved/rejected) this story
+  reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  reviewedAt: { type: Date, default: null },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }

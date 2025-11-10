@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
-require("dotenv").config();
+// require("dotenv").config();
 const { connectDB } = require("./config/db");
 
 const app = express();
@@ -48,8 +48,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// app.use ("*", (req, res) => {
+
+// })
+
 const PORT = process.env.PORT || 5000;
-connectDB(process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0.1:27017/news-app")
+connectDB(
+  process.env.MONGODB_URI ||
+    process.env.MONGO_URI ||
+    "mongodb://127.0.0.1:27017/news-app"
+)
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Backend server running on port ${PORT}`);
@@ -59,5 +67,3 @@ connectDB(process.env.MONGODB_URI || process.env.MONGO_URI || "mongodb://127.0.0
     console.error("Failed to connect DB", err);
     process.exit(1);
   });
-
-

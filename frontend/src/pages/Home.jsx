@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NewsFeed from "../components/NewsFeed";
 import Cookies from "js-cookie";
 
-function Home({category}) {
+function Home({ category }) {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -17,7 +16,11 @@ function Home({category}) {
       try {
         setUser(JSON.parse(storedUser));
       } catch {
-        setUser({ name: "Guest User", email: "guest@example.com", role: "user" });
+        setUser({
+          name: "Guest User",
+          email: "guest@example.com",
+          role: "user",
+        });
       }
     }
   }, []);
@@ -32,8 +35,6 @@ function Home({category}) {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 p-5">
       {/* ---------- HEADER ---------- */}
-      
-      
 
       {/* ---------- NEWS FEED ---------- */}
       <NewsFeed category={category} />

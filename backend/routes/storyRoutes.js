@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const { auth, requireRole } = require("../middleware/authMiddleware");
-const { getAllStories, createStory, getStoryById, updateStory, deleteStory } = require("../controllers/storyController");
+const { getAllStories, createStory, getStoryById, updateStory, deleteStory } = require("./controllers/storyController");
 
 const router = express.Router();
 const storage = multer.diskStorage({
@@ -14,9 +14,13 @@ const upload = multer({ storage });
 router.get("/", auth(false), getAllStories);
 router.post("/", auth(true), requireRole("editor", "admin"), upload.single("image"), createStory);
 router.get("/editor", auth(true), requireRole("editor", "admin"), async (req, res) => {
-  const Story = require("../models/Story");
+  const Story = require("./models/Story");
   try {
-    const list = await Story.find({ author: req.user.id }).sort({ createdAt: -1 });
+    const list = await Story.find({ author: req.user.id })
+      .populate("category")
+      .populate("author", "name email")
+      .populate("reviewedBy", "name email")
+      .sort({ createdAt: -1 });
     res.json(list);
   } catch (e) {
     res.status(500).json({ message: "Server error" });

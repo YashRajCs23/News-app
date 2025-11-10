@@ -16,7 +16,11 @@ async function getAllStories(req, res) {
       const cat = await Category.findOne({ slug: req.query.category });
       if (cat) filter.category = cat._id;
     }
-    const stories = await Story.find(filter).populate("category").populate("author", "name email").sort({ createdAt: -1 });
+    const stories = await Story.find(filter)
+      .populate("category")
+      .populate("author", "name email")
+      .populate("reviewedBy", "name email")
+      .sort({ createdAt: -1 });
     res.json(stories);
   } catch (e) {
     res.status(500).json({ message: "Server error" });
@@ -61,7 +65,10 @@ async function createStory(req, res) {
 
 async function getStoryById(req, res) {
   try {
-    const story = await Story.findById(req.params.id).populate("category").populate("author", "name email");
+    const story = await Story.findById(req.params.id)
+      .populate("category")
+      .populate("author", "name email")
+      .populate("reviewedBy", "name email");
     if (!story) return res.status(404).json({ message: "Story not found" });
     if (story.status !== "approved" && (!req.user || (req.user.id !== String(story.author) && req.user.role !== "admin"))) {
       return res.status(403).json({ message: "Forbidden" });

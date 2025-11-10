@@ -7,13 +7,20 @@ const router = express.Router();
 
 router.post(
   "/signup",
-  [body("email").isEmail(), body("password").isLength({ min: 6 }), body("role").optional().isIn(["user", "editor", "admin"])],
+  [
+    body("email").isEmail(),
+    body("password").isLength({ min: 6 }),
+    body("role").optional().isIn(["user", "editor", "admin"]),
+  ],
   signup
 );
 
-router.post("/login", [body("email").isEmail(), body("password").isLength({ min: 6 })], login);
+router.post(
+  "/login",
+  [body("email").isEmail(), body("password").isLength({ min: 6 })],
+  login
+);
+
 router.get("/me", auth(true), me);
 
 module.exports = router;
-
-

@@ -34,7 +34,14 @@ async function moderateStory(req, res) {
     const { action } = req.body; // approve | reject
     if (!["approve", "reject"].includes(action)) return res.status(400).json({ message: "Invalid action" });
     story.status = action === "approve" ? "approved" : "rejected";
+    // record which admin reviewed this story and when
+    if (req.user && req.user.id) {
+      story.reviewedBy = req.user.id;
+      story.reviewedAt = new Date();
+    }
     await story.save();
+    // populate reviewer before returning
+    await story.populate("reviewedBy", "name email").execPopulate?.();
     res.json(story);
   } catch (e) {
     res.status(500).json({ message: "Server error" });

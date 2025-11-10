@@ -4,7 +4,11 @@ import { useUserContext } from "../context/UserContext";
 
 export default function EditorDashboard() {
   const [stories, setStories] = useState([]);
-  const [newStory, setNewStory] = useState({ title: "", content: "", category: "general" });
+  const [newStory, setNewStory] = useState({
+    title: "",
+    content: "",
+    category: "general",
+  });
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,22 +28,23 @@ export default function EditorDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newStory.title || !newStory.content) return alert("Please fill all fields");
+    if (!newStory.title || !newStory.content)
+      return alert("Please fill all fields");
 
     try {
       setLoading(true);
-      
+
       const formData = new FormData();
       formData.append("title", newStory.title);
       formData.append("content", newStory.content);
       formData.append("category", newStory.category);
-      
+
       if (imageFile) {
         formData.append("image", imageFile);
       }
 
       await http.post("/api/stories", formData);
-      
+
       alert("Story submitted for admin review!");
       setNewStory({ title: "", content: "", category: "general" });
       setImageFile(null);
@@ -56,10 +61,15 @@ export default function EditorDashboard() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-semibold mb-4 text-center">Editor Dashboard</h2>
+      <h2 className="text-3xl font-semibold mb-4 text-center">
+        Editor Dashboard
+      </h2>
 
       {/* --- New Story Form --- */}
-      <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow mb-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-4 rounded-lg shadow mb-6"
+      >
         <h3 className="text-xl font-bold mb-3">Add New Story</h3>
 
         <input
@@ -70,12 +80,14 @@ export default function EditorDashboard() {
           onChange={(e) => setNewStory({ ...newStory, title: e.target.value })}
           required
         />
-        
+
         <textarea
           placeholder="Story Content"
           className="border p-2 w-full mb-3 rounded h-32"
           value={newStory.content}
-          onChange={(e) => setNewStory({ ...newStory, content: e.target.value })}
+          onChange={(e) =>
+            setNewStory({ ...newStory, content: e.target.value })
+          }
           required
         />
 
@@ -84,7 +96,9 @@ export default function EditorDashboard() {
           <select
             className="border p-2 w-full rounded"
             value={newStory.category}
-            onChange={(e) => setNewStory({ ...newStory, category: e.target.value })}
+            onChange={(e) =>
+              setNewStory({ ...newStory, category: e.target.value })
+            }
           >
             <option value="general">General</option>
             <option value="world">World</option>
@@ -96,7 +110,9 @@ export default function EditorDashboard() {
         </div>
 
         <div className="mb-3">
-          <label className="block text-sm font-medium mb-1">Image (Optional)</label>
+          <label className="block text-sm font-medium mb-1">
+            Image (Optional)
+          </label>
           <input
             id="image-upload"
             type="file"
@@ -148,6 +164,11 @@ export default function EditorDashboard() {
                       {story.status}
                     </span>
                   </p>
+                  {story.status !== "pending" && story.reviewedBy && (
+                    <p className="text-sm text-gray-600">
+                      Reviewed by: <strong>{story.reviewedBy.name}</strong>
+                    </p>
+                  )}
                 </div>
               </li>
             ))}

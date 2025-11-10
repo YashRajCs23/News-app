@@ -7,6 +7,7 @@ const NewsFeed = ({ category }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookmarkedArticles, setBookmarkedArticles] = useState(new Set());
+  const [communityStories, setCommunityStories] = useState([]);
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -20,6 +21,15 @@ const NewsFeed = ({ category }) => {
         if (!data.articles || data.articles.length === 0)
           throw new Error("No articles found for this category");
         setArticles(data.articles);
+        // fetch approved community stories for this category
+        try {
+          const sres = await http.get("/api/stories", { params: { category } });
+          setCommunityStories(Array.isArray(sres.data) ? sres.data : []);
+        } catch (e) {
+          // don't block primary news fetch if stories fail
+          console.warn("Failed to fetch community stories:", e.message || e);
+          setCommunityStories([]);
+        }
       } catch (err) {
         setError(err.message || "Failed to fetch news");
       } finally {
@@ -124,6 +134,29 @@ const NewsFeed = ({ category }) => {
           </div>
         ))}
       </div>
+
+      {/* Community Stories (user-submitted and admin-approved) */}
+      {communityStories && communityStories.length > 0 && (
+        <div className="w-full max-w-[1200px] mt-8">
+          <h3 className="text-xl font-bold mb-4 text-teal-400">Community Stories</h3>
+          <div className="grid gap-5">
+            {communityStories.map((story) => (
+              <div key={story._id} className="bg-slate-800 p-4 rounded-md text-slate-200">
+                {story.imageUrl && (
+                  <img src={story.imageUrl} alt={story.title} className="w-full h-48 object-cover rounded-md mb-3" />
+                )}
+                <h4 className="text-lg font-semibold">{story.title}</h4>
+                <p className="text-sm text-slate-400">By {story.author?.name || "Unknown"} • {new Date(story.createdAt).toLocaleString()}</p>
+                <p className="mt-2 text-slate-300">{story.content?.slice(0, 180)}{story.content && story.content.length > 180 ? "..." : ""}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Category: {story.category?.name || "—"}</span>
+                  <a href={`/story/${story._id}`} className="text-teal-400 font-semibold">Read →</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
