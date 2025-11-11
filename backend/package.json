@@ -4,11 +4,10 @@
   "description": "Backend server for News App (Express + MongoDB + Vite frontend)",
   "main": "server.js",
   "type": "commonjs",
-  "scripts": {
-    "build": "cd ../frontend && npm install && npm run build",
-    "start": "npm run build && node server.js",
-    "dev": "nodemon --env-file=.env server.js"
-  },
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon --env-file=.env server.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
