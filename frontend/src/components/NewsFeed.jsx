@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import http from "../services/http";
 import { addNews as addBookmark, removeNews as removeBookmark } from "../services/bookmarkService";
 
 const NewsFeed = ({ category }) => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -150,7 +152,12 @@ const NewsFeed = ({ category }) => {
                 <p className="mt-2 text-slate-300">{story.content?.slice(0, 180)}{story.content && story.content.length > 180 ? "..." : ""}</p>
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-xs text-slate-400">Category: {story.category?.name || "—"}</span>
-                  <a href={`/story/${story._id}`} className="text-teal-400 font-semibold">Read →</a>
+                  <button
+                    onClick={() => navigate(`/story/${story._id}`)}
+                    className="text-teal-400 font-semibold hover:text-teal-300 transition"
+                  >
+                    Read →
+                  </button>
                 </div>
               </div>
             ))}

@@ -2,7 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const { auth, requireRole } = require("../middleware/authMiddleware");
-const { getAllStories, createStory, getStoryById, updateStory, deleteStory } = require("./controllers/storyController");
+// controllers live in ../controllers relative to this file
+const { getAllStories, createStory, getStoryById, updateStory, deleteStory } = require("../controllers/storyController");
 
 const router = express.Router();
 const storage = multer.diskStorage({
