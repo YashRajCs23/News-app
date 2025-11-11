@@ -21,7 +21,8 @@ app.use(cookieParser());
 // Configure CORS
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://newssaggregator.netlify.app/"
+  "https://newssaggregator.netlify.app",
+  process.env.FRONTEND_URL
 ];
 
 app.use(
@@ -30,6 +31,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(" CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
