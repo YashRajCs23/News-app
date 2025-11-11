@@ -13,36 +13,44 @@ const { connectDB } = require("./config/db");
 const app = express();
 app.set("trust proxy", 1);
 
-// 🛡 Security Middlewares
+// Security Middlewares
 app.use(helmet());
 app.use(compression());
 app.use(cookieParser());
 
-// 🌐 Configure CORS
-const allowedOrigin =
-  process.env.FRONTEND_URL || process.env.VITE_API_URL || "http://localhost:5173";
+// Configure CORS
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://newssaggregator.netlify.app/"
+];
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-// 🚦 Basic Rate Limiter
+// Basic Rate Limiter
 app.use(
   rateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 120, // limit each IP to 120 requests per windowMs
+    max: 120, // limit each IP to 120 requests per minute
   })
 );
 
-// 🧾 Request Parsing and Logging
+// Request Parsing and Logging
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-// 📂 Uploads Directory Setup
+// Uploads Directory Setup
 const uploadsDir = path.join(process.cwd(), "backend", "uploads");
 try {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -51,12 +59,12 @@ try {
 }
 app.use("/uploads", express.static(uploadsDir));
 
-// 💓 Health Check Endpoint
+// Health Check Endpoint
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// 🧭 Import Routes
+// Import Routes
 const storyRoutes = require("./routes/storyRoutes");
 const newsRoutes = require("./routes/newsRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -64,7 +72,7 @@ const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const bookmarkRoutes = require("./routes/bookmarkRoutes");
 
-// 🛣 Use Routes
+// Use Routes
 app.use("/api/stories", storyRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/users", userRoutes);
@@ -72,7 +80,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 
-// ❌ Fallback for Unknown API Routes
+// Fallback for Unknown API Routes
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "Not Found" });
@@ -80,31 +88,28 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🧱 Serve Frontend in Production
+// Serve Frontend in Production
 if (process.env.NODE_ENV === "production") {
-  // ✅ FIXED PATH HERE
   const clientDist = path.join(__dirname, "..", "frontend", "dist");
 
   if (fs.existsSync(clientDist)) {
     app.use(express.static(clientDist));
 
-    // Serve index.html for root
     app.get("/", (_req, res) =>
       res.sendFile(path.join(clientDist, "index.html"))
     );
 
-    // Serve index.html for all non-API routes
     app.get(/^(?!\/api).*/, (_req, res) =>
       res.sendFile(path.join(clientDist, "index.html"))
     );
   } else {
     console.warn(
-      "⚠️  Production build not found at frontend/dist — make sure to run frontend build before starting in production."
+      "Production build not found at frontend/dist — make sure to run frontend build before starting in production."
     );
   }
 }
 
-// 🚀 Start Server
+// Start Server
 const PORT = process.env.PORT || 5000;
 connectDB(
   process.env.MONGODB_URI ||
@@ -113,10 +118,10 @@ connectDB(
 )
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`✅ Backend server running on port ${PORT}`);
+      console.log(`Backend server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ Failed to connect DB", err);
+    console.error("Failed to connect DB", err);
     process.exit(1);
   });
