@@ -2,15 +2,42 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const path = require("path");
-// require("dotenv").config();
+// Load environment variables early
+require("dotenv").config();
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 const { connectDB } = require("./config/db");
 
 const app = express();
 
 // Middleware
-app.use(cors());
+// Security middlewares
+app.use(helmet());
+app.use(compression());
+app.use(cookieParser());
+
+// Configure CORS to allow only the configured origin in production
+const allowedOrigin = process.env.FRONTEND_URL || process.env.VITE_API_URL || "http://localhost:5173";
+app.use(
+  cors({
+    origin: allowedOrigin,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
+// Basic rate limiting to protect public endpoints
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 120, // limit each IP to 120 requests per windowMs
+  })
+);
+
 app.use(express.json());
-app.use(morgan("dev"));
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 const uploadsDir = path.join(process.cwd(), "backend", "uploads");
 const fs = require("fs");
 try {
@@ -47,6 +74,19 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+  const clientDist = path.join(process.cwd(), "frontend", "dist");
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    app.get("/", (_req, res) => res.sendFile(path.join(clientDist, "index.html")));
+    // All other non-api routes should serve the SPA
+    app.get(/^(?!\/api).*/, (_req, res) => res.sendFile(path.join(clientDist, "index.html")));
+  } else {
+    console.warn("Production build not found at frontend/dist — make sure to run frontend build before starting in production.");
+  }
+}
 
 // app.use ("*", (req, res) => {
 
