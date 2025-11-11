@@ -43,13 +43,14 @@ const Story = () => {
   const title = String(story.title || "Untitled").trim();
   
   // Safely extract author name
-  let authorName = "Unknown";
+    let authorName = "Unknown"; // Show author name/email/id
   try {
     if (story.author) {
       if (typeof story.author === "string") {
         authorName = String(story.author).trim();
-      } else if (typeof story.author === "object" && story.author.name) {
-        authorName = String(story.author.name).trim();
+      } else if (typeof story.author === "object") {
+        // prefer name, then email, then _id
+        authorName = String(story.author.name || story.author.email || story.author._id || "Unknown").trim();
       }
     }
   } catch (e) {

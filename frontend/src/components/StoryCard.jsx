@@ -1,6 +1,4 @@
-import React from "react";
 import { formatDate } from "../utils/formatDate";
-
 const StoryCard = ({ story, onApprove, onReject, showActions = false }) => {
   if (!story) return null;
 
@@ -9,7 +7,7 @@ const StoryCard = ({ story, onApprove, onReject, showActions = false }) => {
       <h2 className="text-xl font-semibold text-gray-800 mb-1">{story.title}</h2>
 
       <p className="text-sm text-gray-500 mb-2">
-        By {story.author || "Unknown"} • {formatDate(story.createdAt)}
+        By {((typeof story.author === 'object') ? (story.author.name || story.author.email || story.author._id) : story.author) || "Unknown"} • {formatDate(story.createdAt)}
       </p>
 
       <p className="text-gray-700 mb-3">

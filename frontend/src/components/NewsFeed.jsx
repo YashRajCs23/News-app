@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUserContext } from "../context/UserContext";
+import { deleteStory as deleteStoryApi } from "../services/storyService";
 import http from "../services/http";
 import { addNews as addBookmark, removeNews as removeBookmark } from "../services/bookmarkService";
 
@@ -10,6 +12,7 @@ const NewsFeed = ({ category }) => {
   const [error, setError] = useState(null);
   const [bookmarkedArticles, setBookmarkedArticles] = useState(new Set());
   const [communityStories, setCommunityStories] = useState([]);
+  const { user } = useUserContext();
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -148,16 +151,44 @@ const NewsFeed = ({ category }) => {
                   <img src={story.imageUrl} alt={story.title} className="w-full h-48 object-cover rounded-md mb-3" />
                 )}
                 <h4 className="text-lg font-semibold">{story.title}</h4>
-                <p className="text-sm text-slate-400">By {story.author?.name || "Unknown"} • {new Date(story.createdAt).toLocaleString()}</p>
+                <p className="text-sm text-slate-400">By {((typeof story.author === 'object') ? (story.author.name || story.author.email || story.author._id) : story.author) || "Unknown"} • {new Date(story.createdAt).toLocaleString()}</p>
                 <p className="mt-2 text-slate-300">{story.content?.slice(0, 180)}{story.content && story.content.length > 180 ? "..." : ""}</p>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">Category: {story.category?.name || "—"}</span>
-                  <button
-                    onClick={() => navigate(`/story/${story._id}`)}
-                    className="text-teal-400 font-semibold hover:text-teal-300 transition"
-                  >
-                    Read →
-                  </button>
+                  <span className="text-xs text-slate-400">Category: {((typeof story.category === 'object') ? (story.category.name || "—") : story.category) || "—"}</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate(`/story/${story._id}`)}
+                      className="text-teal-400 font-semibold hover:text-teal-300 transition"
+                    >
+                      Read →
+                    </button>
+                    {/* If current user is the admin who reviewed (approved) this story, show remove */}
+                    {user && user.role === "admin" ? (
+                      <button
+                        onClick={async () => {
+                          if (!confirm("Remove this story? This will permanently delete it.")) return;
+                          try {
+                            // optimistic UI
+                            const prev = communityStories;
+                            setCommunityStories(prev.filter(s => String(s._id) !== String(story._id)));
+                            await deleteStoryApi(story._id);
+                          } catch (e) {
+                            alert("Failed to remove story: " + (e.message || e));
+                            // revert by re-fetching stories for category
+                            try {
+                              const sres = await http.get("/api/stories", { params: { category } });
+                              setCommunityStories(Array.isArray(sres.data) ? sres.data : []);
+                            } catch (_) {
+                              // ignore
+                            }
+                          }
+                        }}
+                        className="text-red-400 font-semibold hover:text-red-300 transition"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))}
