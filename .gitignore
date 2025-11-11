@@ -9,7 +9,6 @@ frontend/.env
 backend/.env
 
 # --- Build & Upload folders ---
-frontend/dist/
 backend/uploads/
 uploads/
 
